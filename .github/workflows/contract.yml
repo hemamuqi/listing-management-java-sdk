@@ -1,0 +1,38 @@
+name: SDK contract regression
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'src/**'
+      - 'specs/openapi/**'
+      - '.github/workflows/contract.yml'
+      - 'build.gradle.kts'
+      - 'settings.gradle.kts'
+      - 'gradle/**'
+      - 'gradle.lockfile'
+  pull_request:
+    paths:
+      - 'src/**'
+      - 'specs/openapi/**'
+      - '.github/workflows/contract.yml'
+      - 'build.gradle.kts'
+      - 'settings.gradle.kts'
+      - 'gradle/**'
+      - 'gradle.lockfile'
+  workflow_dispatch:
+    inputs:
+      include-errors:
+        description: Include declared 4xx responses
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  contract:
+    uses: hemamuqi/account-management-java-sdk/.github/workflows/java-contract.yml@main
+    with:
+      include-errors: ${{ inputs.include-errors || false }}

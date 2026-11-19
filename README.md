@@ -39,6 +39,35 @@ src/main/java/com/ebay/listingmanagement/
 - Java 17+
 - Gradle
 
+## Contract regression
+
+The [contract regression workflow](.github/workflows/contract.yml) runs on relevant
+pull requests and pushes to `main`, or manually with an optional 4xx suite. Its
+trigger rules live here; the account-management reusable workflow on `main` handles
+checkout, Java setup, and the shared contract runner and adapter. No credentials
+or live eBay requests are needed. Workflow changes on `main` are picked up
+automatically; the shared workflow currently pins its underlying action version.
+
+For a local run, use Node.js 22+ and a checkout of that repository:
+
+```bash
+export CONTRACT_JAVA_ADAPTER_SOURCE=/path/to/account-management-java-sdk/tools/contract-test/adapters/java
+export CONTRACT_GRADLE_INIT_SCRIPT=/path/to/account-management-java-sdk/tools/contract-test/gradle/contract.init.gradle
+node /path/to/account-management-java-sdk/tools/contract-test/lib/runner.cjs \
+    --spec specs/openapi/feed.json --spec specs/openapi/inventory.json \
+    --spec specs/openapi/media.json --spec specs/openapi/stores.json \
+    -- bash -lc './gradlew --init-script "$CONTRACT_GRADLE_INIT_SCRIPT" :contractTestAdapter --no-daemon --quiet'
+```
+
+The current positive suite reports 75/80 passing operations. The five upload
+operations (`feed.uploadFile`, `media.createImageFromFile`, `media.uploadVideo`,
+`media.uploadDocument`, and `media.uploadPostOrderDocument`) still fail. The
+shared runner only generates JSON bodies and treats the upload content headers
+as JSON/string samples; the Java adapter only accepts Kiota `Parsable` bodies.
+Also, the SDK upload wrappers currently do not forward their binary body
+arguments to generated request builders. These need support in the shared
+runner/adapter and the generated SDK upload path before this workflow can pass.
+
 ## Installation
 
 ```kotlin

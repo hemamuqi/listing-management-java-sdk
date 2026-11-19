@@ -27,13 +27,39 @@ public final class ListingManagementConfiguration {
     private final String mediaBaseUrl;
     private final String storesBaseUrl;
     private final String graphQLBaseUrl;
+    private final boolean localTesting;
 
     public ListingManagementConfiguration() {
+        this.localTesting = false;
         this.feedBaseUrl = "https://api.ebay.com/sell/feed/v1";
         this.inventoryBaseUrl = "https://api.ebay.com/sell/inventory/v1";
         this.mediaBaseUrl = "https://apim.ebay.com/commerce/media/v1_beta";
         this.storesBaseUrl = "https://api.ebay.com/sell/stores/v1";
         this.graphQLBaseUrl = "https://api.ebay.com/graphql";
+    }
+
+    public static ListingManagementConfiguration forLocalTesting(int port) {
+        if (port < 1 || port > 65535) {
+            throw new IllegalArgumentException("Invalid local test port: " + port);
+        }
+        String origin = "http://127.0.0.1:" + port;
+        return new ListingManagementConfiguration(
+            origin + "/sell/feed/v1",
+            origin + "/sell/inventory/v1",
+            origin + "/commerce/media/v1_beta",
+            origin + "/sell/stores/v1",
+            origin + "/graphql",
+            true);
+    }
+
+    private ListingManagementConfiguration(String feedBaseUrl, String inventoryBaseUrl,
+            String mediaBaseUrl, String storesBaseUrl, String graphQLBaseUrl, boolean localTesting) {
+        this.localTesting = localTesting;
+        this.feedBaseUrl = feedBaseUrl;
+        this.inventoryBaseUrl = inventoryBaseUrl;
+        this.mediaBaseUrl = mediaBaseUrl;
+        this.storesBaseUrl = storesBaseUrl;
+        this.graphQLBaseUrl = graphQLBaseUrl;
     }
 
     public ListingManagementConfiguration(
@@ -42,6 +68,7 @@ public final class ListingManagementConfiguration {
             String mediaBaseUrl,
             String storesBaseUrl,
             String graphQLBaseUrl) {
+        this.localTesting = false;
         this.feedBaseUrl = validateHost(feedBaseUrl);
         this.inventoryBaseUrl = validateHost(inventoryBaseUrl);
         this.mediaBaseUrl = validateHost(mediaBaseUrl);
@@ -85,6 +112,9 @@ public final class ListingManagementConfiguration {
         Set<String> hosts = new HashSet<>();
         hosts.add("api.ebay.com");
         hosts.add("apim.ebay.com");
+        if (localTesting) {
+            hosts.add("127.0.0.1");
+        }
         return hosts;
     }
 
